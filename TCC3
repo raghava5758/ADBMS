@@ -75,3 +75,4 @@ COMMIT;
 SELECT * FROM StudentEnrollments WHERE student_id = 1;
 -- still sees enrollment_date = '2024-06-01'
 COMMIT;
+SELECT *FROM StudentEnrollments;
