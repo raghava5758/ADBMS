@@ -1,0 +1,68 @@
+CREATE TABLE StudentEnrollments (
+    enrollment_id INT PRIMARY KEY,
+    student_name VARCHAR(100),
+    course_id VARCHAR(10),
+    enrollment_date DATE,
+    UNIQUE KEY unique_student_course (student_name, course_id)
+);
+START TRANSACTION;
+
+INSERT INTO StudentEnrollments (enrollment_id, student_name, course_id, enrollment_date)
+VALUES (4, 'Ashish', 'CSE101', '2024-07-02');
+
+COMMIT;
+
+--part b
+-- User A
+START TRANSACTION;
+
+SELECT * 
+FROM StudentEnrollments
+WHERE student_name = 'Ashish' AND course_id = 'CSE101'
+FOR UPDATE;
+-- User B (simultaneously)
+START TRANSACTION;
+
+UPDATE StudentEnrollments
+SET enrollment_date = '2024-08-01'
+WHERE student_name = 'Ashish' AND course_id = 'CSE101';
+
+--part c
+-- Initial data
+SELECT * FROM StudentEnrollments WHERE student_name='Ashish' AND course_id='CSE101';
+-- enrollment_date = '2024-07-01'
+
+-- User A
+START TRANSACTION;
+UPDATE StudentEnrollments
+SET enrollment_date='2024-07-10'
+WHERE student_name='Ashish' AND course_id='CSE101';
+-- Not committed yet
+
+-- User B
+START TRANSACTION;
+UPDATE StudentEnrollments
+SET enrollment_date='2024-08-01'
+WHERE student_name='Ashish' AND course_id='CSE101';
+-- Both updates can happen simultaneously
+COMMIT; -- Last commit overwrites the previous one
+
+-- User A
+START TRANSACTION;
+SELECT * FROM StudentEnrollments WHERE student_name='Ashish' AND course_id='CSE101' FOR UPDATE;
+UPDATE StudentEnrollments
+SET enrollment_date='2024-07-10'
+WHERE student_name='Ashish' AND course_id='CSE101';
+-- Do not commit yet
+
+-- User B
+START TRANSACTION;
+UPDATE StudentEnrollments
+SET enrollment_date='2024-08-01'
+WHERE student_name='Ashish' AND course_id='CSE101';
+-- This is blocked until User A commits
+
+-- User A commits
+COMMIT;
+
+-- Now User B can proceed safely
